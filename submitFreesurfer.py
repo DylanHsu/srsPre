@@ -4,20 +4,16 @@ from glob import glob
 # Setup job configs
 prefix = 'fsReconAll'
 jobfolder = "./jobs/"
-cpu_cores = 8
+cpu_cores = 4
 cpu_ram = 16
 #case_dir = "/data/deasy/DylanHsu/N401_unstripped/nifti"
 #image_name = "img_unstripped.nii.gz"
-case_dir="/data/deasy/DylanHsu/nifti_n401"
+case_dir="/data/deasy/DylanHsu/SRS_N401/nifti"
 image_name = "mr1_unstripped.nii.gz"
 try:
   os.makedirs(os.path.join(jobfolder,'logs'))
 except:
   pass
-# Clear job folder
-#old_jobs = glob(jobfolder + "*")
-#for oj in old_jobs:
-#  os.remove(oj)
 configs = []
 
 cases = os.listdir(case_dir)
@@ -47,7 +43,7 @@ for config in configs:
   f.write("cd /home/hsud3/srsPre \n")
   f.write("source /home/hsud3/fsenv.sh \n")
   reconCmd  = ("recon-all-dgh -i %s -s %s -all"%(image_path,config['case'])
-   +" -cw256 -openmp 8"
+   +" -cw256 -openmp %d" % (cpu_cores)
    +" -nofix -notal-check"
    #+" -cw256 -parallel -openmp 8"
    #+" -no-remesh -no-autodetgwstats"

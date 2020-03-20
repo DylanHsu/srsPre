@@ -7,7 +7,7 @@ jobfolder = "./jobs/"
 cpu_cores = 1
 cpu_ram = 8
 dicom_dir = '/data/deasy/DylanHsu/anonymized_dicom_n401'
-output_location = '/data/deasy/DylanHsu/nifti_n401'
+output_location = '/data/deasy/DylanHsu/SRS_N401/nifti'
 
 try:
   os.makedirs(os.path.join(jobfolder,'logs'))

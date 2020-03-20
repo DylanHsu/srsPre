@@ -78,8 +78,9 @@ reg1MrIndex = False
 for iRegSeq, regSeq in enumerate(reg1ImgSeries):
   ris = regSeq.ReferencedImageSequence
   if (
-    '1.2.840.10008.5.1.4.1.1.2' in ris[0].ReferencedSOPClassUID and
-    ris[0].ReferencedSOPInstanceUID in ctSOPInstanceUIDs
+    '1.2.840.10008.5.1.4.1.1.2' in ris[0].ReferencedSOPClassUID
+    #'1.2.840.10008.5.1.4.1.1.2' in ris[0].ReferencedSOPClassUID and
+    #ris[0].ReferencedSOPInstanceUID in ctSOPInstanceUIDs # this check will fail for the edge cases where we deleted some CT slices
   ):
     reg1CtIndex = iRegSeq
     reg1CtFrameOfReferenceUID = regSeq.FrameOfReferenceUID
@@ -310,35 +311,48 @@ if doCropping is True:
     # Crop the unstripped mr1 to something reasonable.
     # For now, use the Brain atlas contour, but in the future we might want to use Otsu's method instead
     # to figure out where the head is.
-    reader.SetFileName(unstrippedMr1NiftiFile)
+    margin=50 #voxels
+    print('Cropping unstripped CT and MR images now...')
+    unstrippedUncroppedCtNiftiFile = os.path.join(args.output_dir,"ct_unstripped_uncropped.nii.gz")
+    unstrippedUncroppedMr1NiftiFile = os.path.join(args.output_dir,"mr1_unstripped_uncropped.nii.gz")
+    shutil.move(unstrippedCtNiftiFile , unstrippedUncroppedCtNiftiFile)
+    shutil.move(unstrippedMr1NiftiFile, unstrippedUncroppedMr1NiftiFile)
+    
+    reader.SetFileName(unstrippedUncroppedMr1NiftiFile)
     mr1_image = reader.Execute()
-    margin=30 #voxels
     bounding_box2 = list(bounding_box)
     bounding_box2[0] = max( bounding_box[0]-margin, 0)
     bounding_box2[1] = max( bounding_box[1]-margin, 0)
     bounding_box2[2] = max( bounding_box[2]-margin, 0)
-    bounding_box2[3] = min( bounding_box[3]+2*margin, mr1_image.GetSize()[0])
-    bounding_box2[4] = min( bounding_box[4]+2*margin, mr1_image.GetSize()[1])
-    bounding_box2[5] = min( bounding_box[5]+2*margin, mr1_image.GetSize()[2])
+    bounding_box2[3] = min( bounding_box[3]+2*margin, mr1_image.GetSize()[0]-bounding_box2[0])
+    bounding_box2[4] = min( bounding_box[4]+2*margin, mr1_image.GetSize()[1]-bounding_box2[1])
+    bounding_box2[5] = min( bounding_box[5]+2*margin, mr1_image.GetSize()[2]-bounding_box2[2])
     bounding_box2 = tuple(bounding_box2)
+    
+    print('Attempting to apply a RegionOfInterest starting at ', bounding_box2[0:int(len(bounding_box2)/2)], ', of size ', bounding_box2[int(len(bounding_box2)/2):], ', to image of size ', mr1_image.GetSize())
     cropped_mr1_image = sitk.RegionOfInterest(mr1_image, bounding_box2[int(len(bounding_box2)/2):], bounding_box2[0:int(len(bounding_box2)/2)])
     writer.SetFileName(unstrippedMr1NiftiFile)
     writer.Execute(cropped_mr1_image)
     
-    reader.SetFileName(unstrippedCtNiftiFile)
+    reader.SetFileName(unstrippedUncroppedCtNiftiFile)
     ct_image = reader.Execute()
-    margin=50 #voxels
     bounding_box2 = list(bounding_box)
     bounding_box2[0] = max( bounding_box[0]-margin, 0)
     bounding_box2[1] = max( bounding_box[1]-margin, 0)
     bounding_box2[2] = max( bounding_box[2]-margin, 0)
-    bounding_box2[3] = min( bounding_box[3]+2*margin, ct_image.GetSize()[0])
-    bounding_box2[4] = min( bounding_box[4]+2*margin, ct_image.GetSize()[1])
-    bounding_box2[5] = min( bounding_box[5]+2*margin, ct_image.GetSize()[2])
+    bounding_box2[3] = min( bounding_box[3]+2*margin, ct_image.GetSize()[0]-bounding_box2[0])
+    bounding_box2[4] = min( bounding_box[4]+2*margin, ct_image.GetSize()[1]-bounding_box2[1])
+    bounding_box2[5] = min( bounding_box[5]+2*margin, ct_image.GetSize()[2]-bounding_box2[2])
     bounding_box2 = tuple(bounding_box2)
     cropped_ct_image = sitk.RegionOfInterest(ct_image, bounding_box2[int(len(bounding_box2)/2):], bounding_box2[0:int(len(bounding_box2)/2)])
+    print('Attempting to apply a RegionOfInterest starting at ', bounding_box2[0:int(len(bounding_box2)/2)], ', of size ', bounding_box2[int(len(bounding_box2)/2):], ', to image of size ', ct_image.GetSize())
     writer.SetFileName(unstrippedCtNiftiFile)
     writer.Execute(cropped_ct_image)
+    for i in [unstrippedUncroppedCtNiftiFile, unstrippedUncroppedMr1NiftiFile]:
+      try:
+        os.remove(i)
+      except:
+        pass    
  
 for contour in allContours:
   lc = basename.lower()
