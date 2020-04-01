@@ -235,6 +235,16 @@ else:
   os.system('plastimatch convert --input "%s" --output-img "%s" --xf "%s" --fixed "%s" >> "%s"'%transformArgs)
 print('Done converting and resampling MR1 into CT frame of reference')
 
+image = sitk.ReadImage(mr1NiftiFile)
+image = sitk.Cast( image, sitk.sitkFloat32 )
+maskImage = sitk.Cast(image,sitk.sitkUInt8)
+corrector = sitk.N4BiasFieldCorrectionImageFilter();
+corrector.SetMaximumNumberOfIterations([2,2,2,2])
+numberFittingLevels = 4
+output = corrector.Execute(image, maskImage) # use all nonzero pixels as mask
+sitk.WriteImage(output, mr1NiftiFile)
+print('Done applying N4 standardization to MR')
+
 ctNiftiFile = os.path.join(args.output_dir,"ct.nii.gz")
 transformArgs = (ctDir, ctNiftiFile, labelCtNiftiFile, plastimatchLog)
 os.system('plastimatch convert --input "%s" --output-img "%s" --fixed "%s" >> "%s"'%transformArgs)
