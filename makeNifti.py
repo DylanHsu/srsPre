@@ -306,17 +306,6 @@ if doCropping is True:
     except:
       pass    
   
-  filteredLabelNiftiFile = os.path.join(args.output_dir,"label_gauss1mm.nii.gz")
-  filterArgs=(filteredLabelNiftiFile,labelCtNiftiFile, plastimatchLog)
-  os.system('plastimatch filter --pattern gauss --gauss-width 1.0 --output "%s" "%s" >> "%s"'%filterArgs)
-  thresholdedLabelNiftiFile = os.path.join(args.output_dir,"label_smoothed.nii.gz")
-  thresholdArgs=(filteredLabelNiftiFile,thresholdedLabelNiftiFile,plastimatchLog)
-  os.system('plastimatch threshold --above 0.4 --input "%s" --output "%s" >> "%s"'%thresholdArgs)
-  try:
-    os.remove(filteredLabelNiftiFile)
-  except:
-    pass
-  
   if doSkullStripping is True:
     # Crop the unstripped mr1 to something reasonable.
     # For now, use the Brain atlas contour, but in the future we might want to use Otsu's method instead
@@ -371,4 +360,25 @@ for contour in allContours:
 os.rmdir(contourDir)
 # end if not already processed
 
+# gaussian filter to smooth labels
+filteredLabelNiftiFile = os.path.join(args.output_dir,"label_gauss1mm.nii.gz")
+filterArgs=(filteredLabelNiftiFile,labelCtNiftiFile, plastimatchLog)
+os.system('plastimatch filter --pattern gauss --gauss-width 1.0 --output "%s" "%s" >> "%s"'%filterArgs)
+thresholdedLabelNiftiFile = os.path.join(args.output_dir,"label_smoothed.nii.gz")
+thresholdArgs=(filteredLabelNiftiFile,thresholdedLabelNiftiFile,plastimatchLog)
+os.system('plastimatch threshold --above 0.4 --input "%s" --output "%s" >> "%s"'%thresholdArgs)
+try:
+  os.remove(filteredLabelNiftiFile)
+except:
+  pass
+  
+# Distance map phi_g calculation
+reader.SetFileName(thresholdedLabelNiftiFile)
+thresholdedLabel = reader.Execute()
+distanceMapFilter = sitk.SignedDanielssonDistanceMapImageFilter()
+# Image     Execute (const Image &image1, bool insideIsPositive, bool squaredDistance, bool useImageSpacing)
+distanceMap = distanceMapFilter.Execute(thresholdedLabel, False, False, False)
+distanceMapNiftiFile = os.path.join(args.output_dir, "distance_map.nii.gz")
+writer.SetFileName(distanceMapNiftiFile)
+writer.Execute(distanceMap)
 
