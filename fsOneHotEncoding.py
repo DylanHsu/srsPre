@@ -3,6 +3,7 @@ def fsDicts():
   # Hardcoded lookup table for the Freesurfer label names
   # from $FREESURFER_HOME/FreeSurferColorLUT.txt
   fsLabelDict={
+    0   : 'Null'                          ,
     1   : 'Left-Cerebral-Exterior'        ,
     2   : 'Left-Cerebral-White-Matter'    ,
     3   : 'Left-Cerebral-Cortex'          ,
@@ -110,7 +111,16 @@ def fsDicts():
     'OpticChiasm'         : ['Optic-Chiasm'],
     'ChoroidPlexus'       : ['Left-choroid-plexus', 'Right-choroid-plexus'],
     'CSF'                 : ['CSF'],
+    'Null'                : ['Null'],
   }
+
+  fsNumberedGroups={}
+  for group, labelNames in fsNamedGroups.items():
+    indices = []
+    for i, labelName in fsLabelDict.items():
+      if labelName in labelNames:
+        indices.append(i)
+    fsNumberedGroups[group] = indices
   
-  return fsLabelDict, fsNamedGroups
+  return fsLabelDict, fsNamedGroups, fsNumberedGroups
 
