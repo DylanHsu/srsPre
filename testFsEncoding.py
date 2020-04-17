@@ -1,8 +1,10 @@
 import SimpleITK as sitk
+import os, sys
 from fsOneHotEncoding import fsDicts
 fsLabelDict, fsNamedGroups, fsNumberedGroups = fsDicts()
 # testing code
-aseg=sitk.ReadImage('/home/hsud3/AB21DF81F_aseg.nii.gz')
+#aseg=sitk.ReadImage('/data/deasy/DylanHsu/SRS_N401/nifti/JR24465FE/aseg.nii.gz')
+aseg=sitk.ReadImage(sys.argv[1])
 ltlmf=sitk.LabelImageToLabelMapFilter()
 castImageFilter = sitk.CastImageFilter()
 castImageFilter.SetOutputPixelType(sitk.sitkUInt16)

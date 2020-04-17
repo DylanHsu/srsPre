@@ -41,7 +41,7 @@ for config in configs:
   f.write("\n")
   f.write("source /home/hsud3/.bash_profile\n")
   f.write("cd /home/hsud3/srsPre \n")
-  f.write("source /home/hsud3/fsenv.sh \n")
+  f.write("source fsenv.sh \n")
   reconCmd  = ("recon-all-dgh -i %s -s %s -all"%(image_path,config['case'])
    +" -cw256 -openmp %d" % (cpu_cores)
    +" -nofix -notal-check"
