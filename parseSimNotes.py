@@ -235,7 +235,7 @@ for line in patientFile:
     nMatchingSimNotes += 1
     goodSimNoteSite = docSite
     goodSimNoteContrastTypeCheckboxes = contrastTypeCheckboxes
-    print('   Matched to Note #%d.'%n)
+    print('   Matched to Note #%d.'%(n+1))
     break
   #assert nMatchingSimNotes <= 1, "Too many matching sim notes. Review the output above and fix the search criteria."
   dataRow = patientFileTokens
