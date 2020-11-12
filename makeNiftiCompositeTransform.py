@@ -422,7 +422,6 @@ print('Soft tissue crop: Attempting to apply a RegionOfInterest starting at ', b
 ctSoftTissue = sitk.RegionOfInterest(ctWindowedMasked, boundingBox[int(len(boundingBox)/2):], boundingBox[0:int(len(boundingBox)/2)])
 sitk.WriteImage(ctSoftTissue, os.path.join(args.output_dir, "ctWindowedSoftTissueCrop.nii.gz"))
 
-boundingBox = tuple(boundingBox)
 print('Soft tissue crop: Attempting to apply a RegionOfInterest starting at ', boundingBox[0:int(len(boundingBox)/2)], ', of size ', boundingBox[int(len(boundingBox)/2):], ', to MR image of size ', ctWindowedMasked.GetSize())
 mr1SoftTissue = sitk.RegionOfInterest(mr1WindowedMasked, boundingBox[int(len(boundingBox)/2):], boundingBox[0:int(len(boundingBox)/2)])
 sitk.WriteImage(mr1SoftTissue, os.path.join(args.output_dir, "mr1WindowedSoftTissueCrop.nii.gz"))
@@ -444,12 +443,12 @@ try:
   # Coarse registration with the MR as the fixed image
   # Need an OK transform before we try to do box-based alignment
   [ctToMr2TransformCoarse, metricValue] = multires_registration(
-    mr2_windowed, mr1_windowed,
+    mr2_windowed, mr1WindowedMasked,#mr1_windowed,
     initial_transform = False,
     metric="mi",
     shrink=True,
-    numberOfIterations = 5000,
-    convergenceWindowSize = 200,
+    numberOfIterations = 1000,
+    convergenceWindowSize = 50,
     convergenceMinimumValue = 1e-9,
     samplingPercentage = 1.0
   )
@@ -464,9 +463,9 @@ try:
     initial_transform = mr2ToCtTransformCoarse,
     metric="mi",
     shrink=False,
-    numberOfIterations = 10000,
-    convergenceWindowSize = 500,
-    convergenceMinimumValue = 1e-10,
+    numberOfIterations = 5000,
+    convergenceWindowSize = 100,
+    convergenceMinimumValue = 1e-9,
     samplingPercentage = 1.0
   )
 except RuntimeError as e:
@@ -477,8 +476,8 @@ except RuntimeError as e:
     initial_transform = False,
     metric="mi",
     shrink=True,
-    numberOfIterations = 5000,
-    convergenceWindowSize = 200,
+    numberOfIterations = 1000,
+    convergenceWindowSize = 50,
     convergenceMinimumValue = 1e-9,
     samplingPercentage = 1.
   )
@@ -492,9 +491,9 @@ except RuntimeError as e:
     initial_transform = mr2ToCtTransformCoarse,
     metric="mi",
     shrink=False,
-    numberOfIterations = 10000,
-    convergenceWindowSize = 500,
-    convergenceMinimumValue = 1e-10,
+    numberOfIterations = 5000,
+    convergenceWindowSize = 100,
+    convergenceMinimumValue = 1e-9,
     samplingPercentage = 1.0
   )
 
